@@ -21,14 +21,14 @@ class loginTest(TestCase):
         data = response.json()
         self.assertEqual(eval(data['err']),1)
 
-    def test_request_err_case(self):
+    def test_methon_err_case(self):
         default_user = User()
         default_user.save()
         url = reverse('login')
         response = self.client.get(path=url)
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(eval(data['err']), 1)
+        self.assertEqual(data['err'], '3')
 
     def test_login_succeed_case(self):
         default_user = User()
