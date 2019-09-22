@@ -26,16 +26,18 @@ def auth(func):
 
 
 # decorator
-def post_only_methon(func):
+def post_only(func):
     def inner(request, *args, **kwargs):
         if request.method != 'POST':
             return JsonResponse({"err": "3"})
         else:
             return func(request, *args, **kwargs)
+
     return inner
 
-@post_only_methon
+
 @csrf_exempt
+@post_only
 def login(request):
     usr = request.POST.get('username')
     pwd = request.POST.get('password')
@@ -48,8 +50,8 @@ def login(request):
         return JsonResponse({"err": "1"})
 
 
-@post_only_methon
 @csrf_exempt
+@post_only
 @auth
 def logout(request):
     response = HttpResponse(json.dumps({"msg": "logout"}), content_type="application/json")
@@ -57,7 +59,7 @@ def logout(request):
     return response
 
 
-@post_only_methon
+@post_only
 @csrf_exempt
 def register(request):
     try:
