@@ -20,3 +20,10 @@
 
 
 editor：Wh1isper
+
+
+## 10月28日 ##
+
+创建了dev分支进行版本控制，准备第一次迭代
+
+editor：Wh1isper
