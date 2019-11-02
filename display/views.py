@@ -51,6 +51,10 @@ def get_only(func):
 @csrf_exempt
 @post_only
 def login(request):
+    code = request.POST.get('check_code', '')
+    if not code == request.session.get('check_code', None):
+        return JsonResponse({"err": "101"})  # 验证码错误
+
     usr = request.POST.get('username')
     pwd = request.POST.get('password')
     user = User.objects.filter(user_name__exact=usr, password__exact=pwd)
@@ -100,7 +104,7 @@ def query_count(request):
     time_before = request.GET.get('time_before')
     ret = {}
     if True:
-    # try:
+        # try:
         object_within_period = Event.objects
         if time_after:
             object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
@@ -139,7 +143,206 @@ def query_count(request):
         else:
             return JsonResponse(json.dumps({"all": len(object_within_period.all())}), safe=False)
     # except:
-    #     return JsonResponse(json.dumps({"err": 4}), safe=False)
+    #     return JsonResponse(json.dumps({"err": 4}), safe=False)-
+
+
+@get_only
+@csrf_exempt
+def check_code(request):
+    code = "answer is here"
+    img = "img is here"
+
+    # imagepath = path.join(d, "static/show/wordimage/" + str(news_id) + ".png")
+    # print("imagepath=" + str(imagepath))
+    # image_data = open(imagepath, "rb").read()
+
+    request.session['check_code'] = code
+    return HttpResponse(img, content_type="image/png")
+
+
+@csrf_exempt
+@auth
+@get_only
+def sort_info(request):
+    sort = request.GET.get('sort')
+    count = request.GET.get('count')
+    offset = request.GET.get('offset')
+    time_after = request.GET.get('time_after')
+    time_before = request.GET.get('time_before')
+    rec_id_before = request.GET.get('rec_id_before')
+    rec_id_after = request.GET.get('rec_id_after')
+    if time_after == None:
+        time_after = '1970-01-01'
+    if time_before == None:
+        time_before = '2999-12-31'
+    if rec_id_after == None:
+        rec_id_after = -9999999
+    if rec_id_before == None:
+        rec_id_before = 9999999
+    if sort == None:
+        sort = 'id_inc'
+    if count == None:
+        count = 20
+    else:
+        count = int(count)
+        if count > 100:
+            return JsonResponse({"err": "5", "msg": "count too high"})
+    if offset == None:
+        offset = 0
+    else:
+        offset = int(offset)
+
+    if sort == 'time_inc':
+        list1 = []
+        inctime = Event.objects.filter(CREATE_TIME__range=(time_after, time_before),
+                                       REC_ID__range=(rec_id_after, rec_id_before)).order_by('CREATE_TIME')
+        if offset + count > len(inctime):
+            return JsonResponse({"err": '5', "msg": "index out of range"})
+        inctime = inctime[offset:offset + count]
+        for info in inctime:
+            event_dict = {"REC_ID": info.REC_ID,
+                          "REPORT_NUM": info.REPORT_NUM,
+                          "CREATE_TIME": info.CREATE_TIME,
+                          # "DISTRICT_NAME":info.DISTRICT_NAME,
+                          "DISTRICT_ID": info.DISTRICT_ID,
+                          # "STREET_NAME":info.STREET_NAME,
+                          "STREET_ID": info.STREET_ID,
+                          # "COMMUNITY_NAME":info.COMMUNITY_NAME,
+                          "COMMUNITY_ID": info.COMMUNITY_ID,
+                          # "EVENT_TYPE_NAME":info.VENT_TYPE_NAME,
+                          "EVENT_TYPE_ID": info.EVENT_TYPE_ID,
+                          # "MAIN_TYPE_NAME":info.MAIN_TYPE_NAME,
+                          "MAIN_TYPE_ID": info.MAIN_TYPE_ID,
+                          # "SUB_TYPE_NAME":info.SUB_TYPE_NAME,
+                          "SUB_TYPE_ID": info.SUB_TYPE_ID,
+                          # "DISPOSE_UNIT_NAME":info.DISPOSE_UNIT_NAME,
+                          "DISPOSE_UNIT_ID": info.DISPOSE_UNIT_ID,
+                          # "EVENT_SRC_NAME":info.EVENT_SRC_NAME,
+                          "EVENT_SRC_ID": info.EVENT_SRC_ID,
+                          "OPERATE_NUM": info.OPERATE_NUM,
+                          "OVERTIME_ARCHIVE_NUM": info.OVERTIME_ARCHIVE_NUM,
+                          "INTIME_TO_ARCHIVE_NUM": info.INTIME_TO_ARCHIVE_NUM,
+                          "INTIME_ARCHIVE_NUM": info.INTIME_ARCHIVE_NUM,
+                          "EVENT_PROPERTY_ID": info.EVENT_PROPERTY_ID,
+                          # "EVENT_PROPERTY_NAME":info.EVENT_PROPERTY_NAME,
+                          "OCCUR_PLACE": info.OCCUR_PLACE}
+            list1.append(event_dict)
+        return JsonResponse({"count": count, "data": list1})
+
+    elif sort == 'time_dec':
+        list2 = []
+        dectime = Event.objects.filter(CREATE_TIME__range=(time_after, time_before),
+                                       REC_ID__range=(rec_id_after, rec_id_before)).order_by('-CREATE_TIME')
+        if offset + count > len(dectime):
+            return JsonResponse({"err": '5', "msg": "index out of range"})
+        dectime = dectime[offset:offset + count]
+        for info in dectime:
+            event_dict = {"REC_ID": info.REC_ID,
+                          "REPORT_NUM": info.REPORT_NUM,
+                          "CREATE_TIME": info.CREATE_TIME,
+                          # "DISTRICT_NAME":info.DISTRICT_NAME,
+                          "DISTRICT_ID": info.DISTRICT_ID,
+                          # "STREET_NAME":info.STREET_NAME,
+                          "STREET_ID": info.STREET_ID,
+                          # "COMMUNITY_NAME":info.COMMUNITY_NAME,
+                          "COMMUNITY_ID": info.COMMUNITY_ID,
+                          # "EVENT_TYPE_NAME":info.VENT_TYPE_NAME,
+                          "EVENT_TYPE_ID": info.EVENT_TYPE_ID,
+                          # "MAIN_TYPE_NAME":info.MAIN_TYPE_NAME,
+                          "MAIN_TYPE_ID": info.MAIN_TYPE_ID,
+                          # "SUB_TYPE_NAME":info.SUB_TYPE_NAME,
+                          "SUB_TYPE_ID": info.SUB_TYPE_ID,
+                          # "DISPOSE_UNIT_NAME":info.DISPOSE_UNIT_NAME,
+                          "DISPOSE_UNIT_ID": info.DISPOSE_UNIT_ID,
+                          # "EVENT_SRC_NAME":info.EVENT_SRC_NAME,
+                          "EVENT_SRC_ID": info.EVENT_SRC_ID,
+                          "OPERATE_NUM": info.OPERATE_NUM,
+                          "OVERTIME_ARCHIVE_NUM": info.OVERTIME_ARCHIVE_NUM,
+                          "INTIME_TO_ARCHIVE_NUM": info.INTIME_TO_ARCHIVE_NUM,
+                          "INTIME_ARCHIVE_NUM": info.INTIME_ARCHIVE_NUM,
+                          "EVENT_PROPERTY_ID": info.EVENT_PROPERTY_ID,
+                          # "EVENT_PROPERTY_NAME":info.EVENT_PROPERTY_NAME,
+                          "OCCUR_PLACE": info.OCCUR_PLACE}
+            list2.append(event_dict)
+        return JsonResponse({"count": count, "data": list2})
+
+    elif sort == 'id_inc':
+        list3 = []
+        incid = Event.objects.extra(select={'id_inc': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
+                                                                          REC_ID__range=(rec_id_after, rec_id_before))
+        if offset + count > len(incid):
+            return JsonResponse({"err": '5', "msg": "index out of range"})
+        # do not know what ID yet
+        incid = incid.extra(order_by=['id_inc'])[offset:offset + count]
+        for info in incid:
+            event_dict = {"REC_ID": info.REC_ID,
+                          "REPORT_NUM": info.REPORT_NUM,
+                          "CREATE_TIME": info.CREATE_TIME,
+                          # "DISTRICT_NAME":info.DISTRICT_NAME,
+                          "DISTRICT_ID": info.DISTRICT_ID,
+                          # "STREET_NAME":info.STREET_NAME,
+                          "STREET_ID": info.STREET_ID,
+                          # "COMMUNITY_NAME":info.COMMUNITY_NAME,
+                          "COMMUNITY_ID": info.COMMUNITY_ID,
+                          # "EVENT_TYPE_NAME":info.VENT_TYPE_NAME,
+                          "EVENT_TYPE_ID": info.EVENT_TYPE_ID,
+                          # "MAIN_TYPE_NAME":info.MAIN_TYPE_NAME,
+                          "MAIN_TYPE_ID": info.MAIN_TYPE_ID,
+                          # "SUB_TYPE_NAME":info.SUB_TYPE_NAME,
+                          "SUB_TYPE_ID": info.SUB_TYPE_ID,
+                          # "DISPOSE_UNIT_NAME":info.DISPOSE_UNIT_NAME,
+                          "DISPOSE_UNIT_ID": info.DISPOSE_UNIT_ID,
+                          # "EVENT_SRC_NAME":info.EVENT_SRC_NAME,
+                          "EVENT_SRC_ID": info.EVENT_SRC_ID,
+                          "OPERATE_NUM": info.OPERATE_NUM,
+                          "OVERTIME_ARCHIVE_NUM": info.OVERTIME_ARCHIVE_NUM,
+                          "INTIME_TO_ARCHIVE_NUM": info.INTIME_TO_ARCHIVE_NUM,
+                          "INTIME_ARCHIVE_NUM": info.INTIME_ARCHIVE_NUM,
+                          "EVENT_PROPERTY_ID": info.EVENT_PROPERTY_ID,
+                          # "EVENT_PROPERTY_NAME":info.EVENT_PROPERTY_NAME,
+                          "OCCUR_PLACE": info.OCCUR_PLACE}
+            list3.append(event_dict)
+        return JsonResponse({"count": count, "data": list3})
+
+    elif sort == 'id_dec':
+        list4 = []
+        decid = Event.objects.extra(select={'id_dec': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
+                                                                          REC_ID__range=(rec_id_after,
+                                                                                         rec_id_before))  # do not know what ID yet
+        if offset + count > len(decid):
+            return JsonResponse({"err": '5', "msg": "index out of range"})
+        decid = decid.extra(order_by=['-id_dec'])[offset:offset + count]
+        for info in decid:
+            event_dict = {"REC_ID": info.REC_ID,
+                          "REPORT_NUM": info.REPORT_NUM,
+                          "CREATE_TIME": info.CREATE_TIME,
+                          # "DISTRICT_NAME":info.DISTRICT_NAME,
+                          "DISTRICT_ID": info.DISTRICT_ID,
+                          # "STREET_NAME":info.STREET_NAME,
+                          "STREET_ID": info.STREET_ID,
+                          # "COMMUNITY_NAME":info.COMMUNITY_NAME,
+                          "COMMUNITY_ID": info.COMMUNITY_ID,
+                          # "EVENT_TYPE_NAME":info.VENT_TYPE_NAME,
+                          "EVENT_TYPE_ID": info.EVENT_TYPE_ID,
+                          # "MAIN_TYPE_NAME":info.MAIN_TYPE_NAME,
+                          "MAIN_TYPE_ID": info.MAIN_TYPE_ID,
+                          # "SUB_TYPE_NAME":info.SUB_TYPE_NAME,
+                          "SUB_TYPE_ID": info.SUB_TYPE_ID,
+                          # "DISPOSE_UNIT_NAME":info.DISPOSE_UNIT_NAME,
+                          "DISPOSE_UNIT_ID": info.DISPOSE_UNIT_ID,
+                          # "EVENT_SRC_NAME":info.EVENT_SRC_NAME,
+                          "EVENT_SRC_ID": info.EVENT_SRC_ID,
+                          "OPERATE_NUM": info.OPERATE_NUM,
+                          "OVERTIME_ARCHIVE_NUM": info.OVERTIME_ARCHIVE_NUM,
+                          "INTIME_TO_ARCHIVE_NUM": info.INTIME_TO_ARCHIVE_NUM,
+                          "INTIME_ARCHIVE_NUM": info.INTIME_ARCHIVE_NUM,
+                          "EVENT_PROPERTY_ID": info.EVENT_PROPERTY_ID,
+                          # "EVENT_PROPERTY_NAME":info.EVENT_PROPERTY_NAME,
+                          "OCCUR_PLACE": info.OCCUR_PLACE}
+            list4.append(event_dict)
+        return JsonResponse({"count": count, "data": list4})
+    else:
+        return JsonResponse({"err": "0"})
 
 
 def init(request):
@@ -177,5 +380,3 @@ def init(request):
         )
         event.save()
     return HttpResponse("添加完成")
-
-

@@ -8,7 +8,8 @@
     /login 为登入接口，接收post
 	{
 		"username":"",
-		"password":""
+		"password":"",
+		"check_code":""
 	}
 	将setCookie['username']
 
@@ -19,7 +20,8 @@
 	保留/init作为json导入数据库接口
 	
 	"err":'0'未知错误（如查找的键不存在）
-	"err":'1'为权限错误（未登入）
+	"err":'1'为权限错误（未登入/用户名或密码错误）
+	"err":'101'为验证码错误
 	"err":'2'为注册时错误（用户已存在）
 	"err":'3'方法错误
 	"err":'4'数据库读取错误

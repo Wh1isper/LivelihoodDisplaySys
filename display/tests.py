@@ -1,9 +1,11 @@
 from django.test import TestCase
 from django.urls import resolve, reverse
 import json
-from .models import Event,User
+from .models import Event, User
 from django.test.utils import override_settings
 from django.conf import settings
+
+
 # Create your tests here.
 
 class loginTest(TestCase):
@@ -15,13 +17,13 @@ class loginTest(TestCase):
     def test_login_false_case(self):
         url = reverse('login')
         response = self.client.post(path=url
-                                    ,data={
-                "username":"wrong",
-                "password":"right",
+                                    , data={
+                "username": "wrong",
+                "password": "right",
             })
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(eval(data['err']),1)
+        self.assertEqual(eval(data['err']), 1)
 
     def test_methon_err_case(self):
         url = reverse('login')
@@ -60,6 +62,7 @@ class loginTest(TestCase):
         response = self.client.post(path=logout)
         data = response.json()
         self.assertEqual(data['success'], '0')
+
 
 class countTest(TestCase):
     def setUp(self):
@@ -101,4 +104,38 @@ class countTest(TestCase):
 
     def test_parameters_time(self):
         response = self.client.get('http://127.0.0.1:8000/query/count?time_after=2018-09-01&time_before=2018-10-01')
+        print(response.json())
+
+
+class sortTest(TestCase):
+    def setUp(self):
+        self.name = 'countTest'
+        init = reverse('init')
+        self.client.get(path=init)
+        default_user = User()
+        default_user.save()
+        login = reverse('login')
+        self.client.post(
+            path=login,
+            data={
+                "username": "sadness",
+                "password": "happiness",
+            })
+
+    def test_sort_time_inc(self):
+        response = self.client.get(
+            'http://127.0.0.1:8000/query/filter?sort=time_inc&count=50&time_after=2018-07-05&time_before=2018-07-04')
+        print(response.json())
+
+    def test_sort_time_dec(self):
+        response = self.client.get('http://127.0.0.1:8000/query/filter?sort=time_dec&count=10')
+        print(response.json())
+
+    def test_sort_id_inc(self):
+        response = self.client.get('http://127.0.0.1:8000/query/filter?count=200')
+        print(response.json())
+
+    def test_sort_id_dec(self):
+        response = self.client.get(
+            'http://127.0.0.1:8000/query/filter?sort=id_dec&count=5&time_after=2018-07-04&time_before=2018-07-05')
         print(response.json())
