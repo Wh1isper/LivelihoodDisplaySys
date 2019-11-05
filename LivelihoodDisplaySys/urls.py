@@ -20,5 +20,4 @@ from display import views
 urlpatterns = [
     path('', include('display.urls')),
     path('admin/', admin.site.urls),
-    path('init/', views.init)
 ]
