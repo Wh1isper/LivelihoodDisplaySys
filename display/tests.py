@@ -9,6 +9,7 @@ from django.conf import settings
 # Create your tests here.
 
 class loginTest(TestCase):
+    # written by jzs
     def setUp(self):
         self.name = 'loginTest'
         default_user = User()
@@ -56,6 +57,7 @@ class loginTest(TestCase):
             data={
                 "username": "sadness",
                 "password": "happiness",
+                "captcha":"answer is here",
             })
 
         logout = reverse('logout')
@@ -63,8 +65,17 @@ class loginTest(TestCase):
         data = response.json()
         self.assertEqual(data['success'], '0')
 
+class chkcodeTest(TestCase):
+    def setUp(self):
+        self.name = 'countTest'
+    def test_get_pic(self):
+        url = reverse('check_code')
+        response = self.client.get(path=url)
+        print(response)
+
 
 class countTest(TestCase):
+    # written by jzs
     def setUp(self):
         self.name = 'countTest'
         init = reverse('init')
@@ -77,6 +88,7 @@ class countTest(TestCase):
             data={
                 "username": "sadness",
                 "password": "happiness",
+                "captcha": "answer is here",
             })
 
     def test_parameters_empty(self):
@@ -106,8 +118,37 @@ class countTest(TestCase):
         response = self.client.get('http://127.0.0.1:8000/query/count?time_after=2018-09-01&time_before=2018-10-01')
         print(response.json())
 
+class itemTest(TestCase):
+    def setUp(self):
+        self.name = 'itemTest'
+        init = reverse('init')
+        self.client.get(path=init)
+        default_user = User()
+        default_user.save()
+        login = reverse('login')
+        self.client.post(
+            path=login,
+            data={
+                "username": "sadness",
+                "password": "happiness",
+                "captcha": "answer is here",
+            })
+    def test_bad_para(self):
+        response = self.client.get('http://127.0.0.1:8000/query/item?bad=9999')
+        print(response.json())
+
+    def test_exit_item(self):
+        response = self.client.get('http://127.0.0.1:8000/query/item?REC_ID=9999')
+        print(response.json())
+
+    def test_non_exit_item(self):
+        response = self.client.get('http://127.0.0.1:8000/query/item?REC_ID=1')
+        print(response.json())
+
+
 
 class sortTest(TestCase):
+    # written by wcz
     def setUp(self):
         self.name = 'countTest'
         init = reverse('init')
@@ -120,6 +161,7 @@ class sortTest(TestCase):
             data={
                 "username": "sadness",
                 "password": "happiness",
+                "captcha": "answer is here",
             })
 
     def test_sort_time_inc(self):

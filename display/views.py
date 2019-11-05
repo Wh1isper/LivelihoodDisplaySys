@@ -13,6 +13,7 @@ from django.db.models import Count
 
 # decorator
 def auth(func):
+    # written by jzs
     def inner(request, *args, **kwargs):
         try:
             v = request.get_signed_cookie('username', salt='iloveyou')
@@ -28,6 +29,7 @@ def auth(func):
 
 # decorator
 def post_only(func):
+    # written by jzs
     def inner(request, *args, **kwargs):
         if request.method != 'POST':
             return JsonResponse({"err": "3"})
@@ -39,6 +41,7 @@ def post_only(func):
 
 # decorator
 def get_only(func):
+    # written by jzs
     def inner(request, *args, **kwargs):
         if request.method != 'GET':
             return JsonResponse({"err": "3"})
@@ -51,9 +54,10 @@ def get_only(func):
 @csrf_exempt
 @post_only
 def login(request):
-    code = request.POST.get('check_code', '')
-    if not code == request.session.get('check_code', None):
-        return JsonResponse({"err": "101"})  # 验证码错误
+    # written by jzs
+    code = request.POST.get('captcha', '')
+    # if not code == request.session.get('check_code', None):
+    #     return JsonResponse({"err": "101"})  # 验证码错误
 
     usr = request.POST.get('username')
     pwd = request.POST.get('password')
@@ -70,6 +74,7 @@ def login(request):
 @post_only
 @auth
 def logout(request):
+    # written by jzs
     response = HttpResponse(json.dumps({"success": "0"}), content_type="application/json")
     response.delete_cookie('username')
     return response
@@ -78,6 +83,7 @@ def logout(request):
 @post_only
 @csrf_exempt
 def register(request):
+    # written by jzs
     try:
         usr = request.POST.get('username')
         pwd = request.POST.get('password')
@@ -96,6 +102,7 @@ def register(request):
 @auth
 @get_only
 def query_count(request):
+    # written by jzs
     first_category = request.GET.get('first_category')
     first_category_filter_id = request.GET.getlist('first_category_filter_id')
     second_category = request.GET.get('second_category')
@@ -104,7 +111,7 @@ def query_count(request):
     time_before = request.GET.get('time_before')
     ret = {}
     if True:
-        # try:
+    # try:
         object_within_period = Event.objects
         if time_after:
             object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
@@ -143,12 +150,13 @@ def query_count(request):
         else:
             return JsonResponse(json.dumps({"all": len(object_within_period.all())}), safe=False)
     # except:
-    #     return JsonResponse(json.dumps({"err": 4}), safe=False)-
+    #     return JsonResponse(json.dumps({"err": 4}), safe=False)
 
 
 @get_only
 @csrf_exempt
 def check_code(request):
+    # written by jzs
     code = "answer is here"
     img = "img is here"
 
@@ -164,6 +172,7 @@ def check_code(request):
 @auth
 @get_only
 def sort_info(request):
+    # written by wcz
     sort = request.GET.get('sort')
     count = request.GET.get('count')
     offset = request.GET.get('offset')
@@ -343,6 +352,47 @@ def sort_info(request):
         return JsonResponse({"count": count, "data": list4})
     else:
         return JsonResponse({"err": "0"})
+
+@csrf_exempt
+@auth
+@get_only
+def item(request):
+    rec_id = request.GET.get('REC_ID')
+    if rec_id:
+        try:
+            info = Event.objects.get(REC_ID__exact=rec_id)
+            event_dict = {"REC_ID": info.REC_ID,
+                          "REPORT_NUM": info.REPORT_NUM,
+                          "CREATE_TIME": info.CREATE_TIME,
+                          # "DISTRICT_NAME":info.DISTRICT_NAME,
+                          "DISTRICT_ID": info.DISTRICT_ID,
+                          # "STREET_NAME":info.STREET_NAME,
+                          "STREET_ID": info.STREET_ID,
+                          # "COMMUNITY_NAME":info.COMMUNITY_NAME,
+                          "COMMUNITY_ID": info.COMMUNITY_ID,
+                          # "EVENT_TYPE_NAME":info.VENT_TYPE_NAME,
+                          "EVENT_TYPE_ID": info.EVENT_TYPE_ID,
+                          # "MAIN_TYPE_NAME":info.MAIN_TYPE_NAME,
+                          "MAIN_TYPE_ID": info.MAIN_TYPE_ID,
+                          # "SUB_TYPE_NAME":info.SUB_TYPE_NAME,
+                          "SUB_TYPE_ID": info.SUB_TYPE_ID,
+                          # "DISPOSE_UNIT_NAME":info.DISPOSE_UNIT_NAME,
+                          "DISPOSE_UNIT_ID": info.DISPOSE_UNIT_ID,
+                          # "EVENT_SRC_NAME":info.EVENT_SRC_NAME,
+                          "EVENT_SRC_ID": info.EVENT_SRC_ID,
+                          "OPERATE_NUM": info.OPERATE_NUM,
+                          "OVERTIME_ARCHIVE_NUM": info.OVERTIME_ARCHIVE_NUM,
+                          "INTIME_TO_ARCHIVE_NUM": info.INTIME_TO_ARCHIVE_NUM,
+                          "INTIME_ARCHIVE_NUM": info.INTIME_ARCHIVE_NUM,
+                          "EVENT_PROPERTY_ID": info.EVENT_PROPERTY_ID,
+                          # "EVENT_PROPERTY_NAME":info.EVENT_PROPERTY_NAME,
+                          "OCCUR_PLACE": info.OCCUR_PLACE}
+            return JsonResponse(event_dict)
+        except:
+            return JsonResponse({"err": "4"})
+    else:
+        return JsonResponse({"err": "0"})
+
 
 
 def init(request):

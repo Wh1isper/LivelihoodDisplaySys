@@ -9,7 +9,7 @@
 	{
 		"username":"",
 		"password":"",
-		"check_code":""
+		"captcha":""
 	}
 	将setCookie['username']
 
