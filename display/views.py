@@ -11,15 +11,19 @@ from .models import Event, User
 from django.db.models import Count
 
 SALT = 'iloveyou'
+
+
 # decorator
 def auth(func):
     # written by jzs
     def inner(request, *args, **kwargs):
         try:
-            v = request.get_signed_cookie('username', salt=SALT)
-            user = User.objects.filter(user_name__exact=v)
-            if not user:
-                return JsonResponse({"err": "1"})
+            # v = request.get_signed_cookie('username', salt=SALT)
+            # user = User.objects.filter(user_name__exact=v)
+            # if not user:
+            #     return JsonResponse({"err": "1"})
+            if not request.session['login']:
+                JsonResponse({"err": "1"})
         except:
             return JsonResponse({"err": "1"})
         return func(request, *args, **kwargs)
@@ -64,8 +68,9 @@ def login(request):
     user = User.objects.filter(user_name__exact=usr, password__exact=pwd)
     if user:
         response = HttpResponse(json.dumps({"success": "0"}), content_type="application/json")
-        response.set_signed_cookie(key='username', value=usr, salt=SALT,
-                                   secure=True,httponly=True)
+        # response.set_signed_cookie(key='username', value=usr, salt=SALT,
+        #                            secure=True,httponly=True)
+        request.session['login'] = True
 
         return response
     else:
@@ -78,7 +83,8 @@ def login(request):
 def logout(request):
     # written by jzs
     response = HttpResponse(json.dumps({"success": "0"}), content_type="application/json")
-    response.delete_cookie('username')
+    # response.delete_cookie('username')
+    request.session['login'] = False
     return response
 
 
@@ -412,7 +418,7 @@ def warning(request):
         object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
     if time_before:
         object_within_period = object_within_period.filter(CREATE_TIME__lte=time_before)
-    object_in_scale = object_within_period[begin:begin+count]
+    object_in_scale = object_within_period[begin:begin + count]
     count = 0
     ret_list = []
     for info in object_in_scale:
@@ -447,7 +453,7 @@ def warning(request):
     return JsonResponse({"count": count, "data": ret_list})
 
 
-@auth
+# @auth
 def init(request):
     with open('display/static/display/data/data.json', 'r', encoding='utf-8') as f:
         content = f.read()
