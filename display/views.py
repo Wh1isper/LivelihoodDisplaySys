@@ -21,11 +21,11 @@ def auth(func):
             # v = request.get_signed_cookie('username', salt=SALT)
             # user = User.objects.filter(user_name__exact=v)
             # if not user:
-            #     return JsonResponse({"err": "1"})
+            #     return JsonResponse({"err": 2})
             if not request.session['login']:
-                JsonResponse({"err": "1"})
+                JsonResponse({"err": 2})
         except:
-            return JsonResponse({"err": "1"})
+            return JsonResponse({"err": 2})
         return func(request, *args, **kwargs)
 
     return inner
@@ -36,7 +36,7 @@ def post_only(func):
     # written by jzs
     def inner(request, *args, **kwargs):
         if request.method != 'POST':
-            return JsonResponse({"err": "3"})
+            return JsonResponse({"err": 4})
         else:
             return func(request, *args, **kwargs)
 
@@ -48,7 +48,7 @@ def get_only(func):
     # written by jzs
     def inner(request, *args, **kwargs):
         if request.method != 'GET':
-            return JsonResponse({"err": "3"})
+            return JsonResponse({"err": 4})
         else:
             return func(request, *args, **kwargs)
 
@@ -61,20 +61,20 @@ def login(request):
     # written by jzs
     code = request.POST.get('captcha', '')
     # if not code == request.session.get('check_code', None):
-    #     return JsonResponse({"err": "101"})  # 验证码错误
+    #     return JsonResponse({"err": 3})  # 验证码错误
 
     usr = request.POST.get('username')
     pwd = request.POST.get('password')
     user = User.objects.filter(user_name__exact=usr, password__exact=pwd)
     if user:
-        response = HttpResponse(json.dumps({"success": "0"}), content_type="application/json")
+        response = HttpResponse(json.dumps({"success": 1}), content_type="application/json")
         # response.set_signed_cookie(key='username', value=usr, salt=SALT,
         #                            secure=True,httponly=True)
         request.session['login'] = True
 
         return response
     else:
-        return JsonResponse({"err": "1"})
+        return JsonResponse({"err": 2})
 
 
 @csrf_exempt
@@ -82,7 +82,7 @@ def login(request):
 @auth
 def logout(request):
     # written by jzs
-    response = HttpResponse(json.dumps({"success": "0"}), content_type="application/json")
+    response = HttpResponse(json.dumps({"success": 1}), content_type="application/json")
     # response.delete_cookie('username')
     request.session['login'] = False
     return response
@@ -99,11 +99,11 @@ def register(request):
         if not user:
             register_user = User(user_name=usr, password=pwd)
             register_user.save()
-            return JsonResponse({"success": "0"})
+            return JsonResponse({"success": 1})
         else:
-            return JsonResponse({"err": "2"})
+            return JsonResponse({"err": 101})
     except:
-        return JsonResponse({"err": "0"})
+        return JsonResponse({"err": 1})
 
 
 @csrf_exempt
@@ -157,7 +157,7 @@ def query_count(request):
         else:
             return JsonResponse(json.dumps({"all": len(object_within_period.all())}), safe=False)
     except:
-        return JsonResponse(json.dumps({"err": 4}), safe=False)
+        return JsonResponse(json.dumps({"err": 5}), safe=False)
 
 
 @get_only
@@ -202,7 +202,7 @@ def sort_info(request):
     else:
         count = int(count)
         if count > 100:
-            return JsonResponse({"err": "5", "msg": "count too high"})
+            return JsonResponse({"err": 5, "msg": "count too high"})
     if offset == None:
         offset = 0
     else:
@@ -213,7 +213,7 @@ def sort_info(request):
         inctime = Event.objects.filter(CREATE_TIME__range=(time_after, time_before),
                                        REC_ID__range=(rec_id_after, rec_id_before)).order_by('CREATE_TIME')
         if offset + count > len(inctime):
-            return JsonResponse({"err": '5', "msg": "index out of range"})
+            return JsonResponse({"err": 5, "msg": "index out of range"})
         inctime = inctime[offset:offset + count]
         for info in inctime:
             event_dict = {"REC_ID": info.REC_ID,
@@ -250,7 +250,7 @@ def sort_info(request):
         dectime = Event.objects.filter(CREATE_TIME__range=(time_after, time_before),
                                        REC_ID__range=(rec_id_after, rec_id_before)).order_by('-CREATE_TIME')
         if offset + count > len(dectime):
-            return JsonResponse({"err": '5', "msg": "index out of range"})
+            return JsonResponse({"err": 5, "msg": "index out of range"})
         dectime = dectime[offset:offset + count]
         for info in dectime:
             event_dict = {"REC_ID": info.REC_ID,
@@ -287,7 +287,7 @@ def sort_info(request):
         incid = Event.objects.extra(select={'id_inc': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
                                                                           REC_ID__range=(rec_id_after, rec_id_before))
         if offset + count > len(incid):
-            return JsonResponse({"err": '5', "msg": "index out of range"})
+            return JsonResponse({"err": 5, "msg": "index out of range"})
         # do not know what ID yet
         incid = incid.extra(order_by=['id_inc'])[offset:offset + count]
         for info in incid:
@@ -326,7 +326,7 @@ def sort_info(request):
                                                                           REC_ID__range=(rec_id_after,
                                                                                          rec_id_before))  # do not know what ID yet
         if offset + count > len(decid):
-            return JsonResponse({"err": '5', "msg": "index out of range"})
+            return JsonResponse({"err": 5, "msg": "index out of range"})
         decid = decid.extra(order_by=['-id_dec'])[offset:offset + count]
         for info in decid:
             event_dict = {"REC_ID": info.REC_ID,
@@ -358,7 +358,7 @@ def sort_info(request):
             list4.append(event_dict)
         return JsonResponse({"count": count, "data": list4})
     else:
-        return JsonResponse({"err": "0"})
+        return JsonResponse({"err": 1})
 
 
 @csrf_exempt
@@ -398,9 +398,9 @@ def item(request):
                           "OCCUR_PLACE": info.OCCUR_PLACE}
             return JsonResponse(event_dict)
         except:
-            return JsonResponse({"err": "4"})
+            return JsonResponse({"err": 5})
     else:
-        return JsonResponse({"err": "0"})
+        return JsonResponse({"err": 5})
 
 
 @csrf_exempt
@@ -413,12 +413,15 @@ def warning(request):
     begin = request.GET.get('begin')
     count = request.GET.get('count')
     warning_event = Event.objects.filter()
-    object_within_period = warning_event
-    if time_after:
-        object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
-    if time_before:
-        object_within_period = object_within_period.filter(CREATE_TIME__lte=time_before)
-    object_in_scale = object_within_period[begin:begin + count]
+    try:
+        object_within_period = warning_event
+        if time_after:
+            object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
+        if time_before:
+            object_within_period = object_within_period.filter(CREATE_TIME__lte=time_before)
+        object_in_scale = object_within_period[begin:begin + count]
+    except:
+        return JsonResponse({"err": 5})
     count = 0
     ret_list = []
     for info in object_in_scale:

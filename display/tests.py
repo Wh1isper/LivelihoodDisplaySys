@@ -117,7 +117,8 @@ class countTest(TestCase):
         print(response.json())
 
     def test_parameters_time(self):
-        response = self.client.get('http://127.0.0.1:8000/query/count?time_after=2018-09-01&time_before=2018-10-01')
+        response = self.client.get('http://127.0.0.1:8000/query/count?first_category=COMMUNITY_ID&'
+                                   'time_after=2018-09-01&time_before=2018-10-01')
         print(response.json())
 
 
