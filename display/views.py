@@ -110,8 +110,7 @@ def query_count(request):
     time_after = request.GET.get('time_after')
     time_before = request.GET.get('time_before')
     ret = {}
-    if True:
-    # try:
+    try:
         object_within_period = Event.objects
         if time_after:
             object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
@@ -149,8 +148,8 @@ def query_count(request):
                 return JsonResponse(json.dumps(ret), safe=False)
         else:
             return JsonResponse(json.dumps({"all": len(object_within_period.all())}), safe=False)
-    # except:
-    #     return JsonResponse(json.dumps({"err": 4}), safe=False)
+    except:
+        return JsonResponse(json.dumps({"err": 4}), safe=False)
 
 
 @get_only
@@ -353,10 +352,12 @@ def sort_info(request):
     else:
         return JsonResponse({"err": "0"})
 
+
 @csrf_exempt
 @auth
 @get_only
 def item(request):
+    # written by jzs
     rec_id = request.GET.get('REC_ID')
     if rec_id:
         try:
@@ -392,6 +393,56 @@ def item(request):
             return JsonResponse({"err": "4"})
     else:
         return JsonResponse({"err": "0"})
+
+
+@csrf_exempt
+@auth
+@get_only
+def warning(request):
+    # written by jzs
+    time_after = request.GET.get('time_after')
+    time_before = request.GET.get('time_before')
+    begin = request.GET.get('begin')
+    count = request.GET.get('count')
+    warning_event = Event.objects.filter()
+    object_within_period = warning_event
+    if time_after:
+        object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
+    if time_before:
+        object_within_period = object_within_period.filter(CREATE_TIME__lte=time_before)
+    object_in_scale = object_within_period[begin:begin+count]
+    count = 0
+    ret_list = []
+    for info in object_in_scale:
+        count += 1
+        event_dict = {"REC_ID": info.REC_ID,
+                      "REPORT_NUM": info.REPORT_NUM,
+                      "CREATE_TIME": info.CREATE_TIME,
+                      # "DISTRICT_NAME":info.DISTRICT_NAME,
+                      "DISTRICT_ID": info.DISTRICT_ID,
+                      # "STREET_NAME":info.STREET_NAME,
+                      "STREET_ID": info.STREET_ID,
+                      # "COMMUNITY_NAME":info.COMMUNITY_NAME,
+                      "COMMUNITY_ID": info.COMMUNITY_ID,
+                      # "EVENT_TYPE_NAME":info.VENT_TYPE_NAME,
+                      "EVENT_TYPE_ID": info.EVENT_TYPE_ID,
+                      # "MAIN_TYPE_NAME":info.MAIN_TYPE_NAME,
+                      "MAIN_TYPE_ID": info.MAIN_TYPE_ID,
+                      # "SUB_TYPE_NAME":info.SUB_TYPE_NAME,
+                      "SUB_TYPE_ID": info.SUB_TYPE_ID,
+                      # "DISPOSE_UNIT_NAME":info.DISPOSE_UNIT_NAME,
+                      "DISPOSE_UNIT_ID": info.DISPOSE_UNIT_ID,
+                      # "EVENT_SRC_NAME":info.EVENT_SRC_NAME,
+                      "EVENT_SRC_ID": info.EVENT_SRC_ID,
+                      "OPERATE_NUM": info.OPERATE_NUM,
+                      "OVERTIME_ARCHIVE_NUM": info.OVERTIME_ARCHIVE_NUM,
+                      "INTIME_TO_ARCHIVE_NUM": info.INTIME_TO_ARCHIVE_NUM,
+                      "INTIME_ARCHIVE_NUM": info.INTIME_ARCHIVE_NUM,
+                      "EVENT_PROPERTY_ID": info.EVENT_PROPERTY_ID,
+                      # "EVENT_PROPERTY_NAME":info.EVENT_PROPERTY_NAME,
+                      "OCCUR_PLACE": info.OCCUR_PLACE}
+        ret_list.append(event_dict)
+    return JsonResponse({"count": count, "data": ret_list})
 
 
 
