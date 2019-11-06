@@ -27,3 +27,16 @@ editor：Wh1isper
 创建了dev分支进行版本控制，准备第一次迭代
 
 editor：Wh1isper
+
+
+## 11月6日 ##
+
+login,count,item测试通过
+
+filter存在after/before错误，正在定位
+
+报警API搭建完成，思考报警的项目
+
+验证码模块搭建完成，等待中文验证码api(@wcz)
+
+editor：Wh1isper
