@@ -23,7 +23,7 @@ def auth(func):
             # if not user:
             #     return JsonResponse({"err": 2})
             if not request.session['login']:
-                JsonResponse({"err": 2})
+                return JsonResponse({"err": 2})
         except:
             return JsonResponse({"err": 2})
         return func(request, *args, **kwargs)
@@ -71,6 +71,7 @@ def login(request):
         # response.set_signed_cookie(key='username', value=usr, salt=SALT,
         #                            secure=True,httponly=True)
         request.session['login'] = True
+        # print(request.session['login'])
 
         return response
     else:
@@ -85,6 +86,7 @@ def logout(request):
     response = HttpResponse(json.dumps({"success": 1}), content_type="application/json")
     # response.delete_cookie('username')
     request.session['login'] = False
+    # print(request.session['login'])
     return response
 
 

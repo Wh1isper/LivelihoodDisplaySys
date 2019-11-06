@@ -24,14 +24,14 @@ class loginTest(TestCase):
             })
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(eval(data['err']), 1)
+        self.assertEqual(data['err'], 2)
 
     def test_methon_err_case(self):
         url = reverse('login')
         response = self.client.get(path=url)
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['err'], '3')
+        self.assertEqual(data['err'], 4)
 
     def test_login_succeed_case(self):
         url = reverse('login')
@@ -42,13 +42,13 @@ class loginTest(TestCase):
             })
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['success'], '0')
+        self.assertEqual(data['success'], 1)
 
     def test_logout_false_case(self):
         logout = reverse('logout')
         response = self.client.post(path=logout)
         data = response.json()
-        self.assertEqual(data['err'], '1')
+        self.assertEqual(data['err'], 2)
 
     def test_logout_succeed_case(self):
         login = reverse('login')
@@ -63,7 +63,10 @@ class loginTest(TestCase):
         logout = reverse('logout')
         response = self.client.post(path=logout)
         data = response.json()
-        self.assertEqual(data['success'], '0')
+        self.assertEqual(data['success'], 1)
+        response = self.client.get('http://127.0.0.1:8000/query/count')
+        data = response.json()
+        self.assertEqual(data['err'], 2)
 
 
 class chkcodeTest(TestCase):

@@ -11,9 +11,10 @@
 		"password":"",
 		"captcha":""
 	}
-	将setCookie['username']
+	利用session访问
 
-	/logout 为登出接口，将删除cookie
+	/logout 为登出接口，将删除session
+	session生存周期为1天
 	
 
 	保留/register作为注册接口
