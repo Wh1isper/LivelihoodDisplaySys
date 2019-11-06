@@ -71,6 +71,7 @@ def login(request):
         # response.set_signed_cookie(key='username', value=usr, salt=SALT,
         #                            secure=True,httponly=True)
         request.session['login'] = True
+
         # print(request.session['login'])
 
         return response
