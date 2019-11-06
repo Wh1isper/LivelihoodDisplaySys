@@ -445,7 +445,7 @@ def warning(request):
     return JsonResponse({"count": count, "data": ret_list})
 
 
-
+@auth
 def init(request):
     with open('display/static/display/data/data.json', 'r', encoding='utf-8') as f:
         content = f.read()
