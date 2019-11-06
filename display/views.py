@@ -10,13 +10,13 @@ import json
 from .models import Event, User
 from django.db.models import Count
 
-
+SALT = 'iloveyou'
 # decorator
 def auth(func):
     # written by jzs
     def inner(request, *args, **kwargs):
         try:
-            v = request.get_signed_cookie('username', salt='iloveyou')
+            v = request.get_signed_cookie('username', salt=SALT)
             user = User.objects.filter(user_name__exact=v)
             if not user:
                 return JsonResponse({"err": "1"})
@@ -64,7 +64,9 @@ def login(request):
     user = User.objects.filter(user_name__exact=usr, password__exact=pwd)
     if user:
         response = HttpResponse(json.dumps({"success": "0"}), content_type="application/json")
-        response.set_signed_cookie(key='username', value=usr, salt='iloveyou')
+        response.set_signed_cookie(key='username', value=usr, salt=SALT,
+                                   secure=True,httponly=True)
+
         return response
     else:
         return JsonResponse({"err": "1"})
