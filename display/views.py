@@ -188,8 +188,8 @@ def sort_info(request):
     offset = request.GET.get('offset')
     time_after = request.GET.get('time_after')
     time_before = request.GET.get('time_before')
-    rec_id_before = request.GET.get('rec_id_before')
-    rec_id_after = request.GET.get('rec_id_after')
+    rec_id_before = request.GET.get('id_before')
+    rec_id_after = request.GET.get('id_after')
     if time_after == None:
         time_after = '1970-01-01'
     if time_before == None:
@@ -466,7 +466,7 @@ def init(request):
     result = json.loads(content[1:-1])
     for line in result:
         event = Event(
-            REC_ID=line['REC_ID'],
+            REC_ID=eval(line['REC_ID']),
             REPORT_NUM=line['REPORT_NUM'],
             CREATE_TIME=line['CREATE_TIME'],
             DISTRICT_NAME=line['DISTRICT_NAME'],

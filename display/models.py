@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 class Event(models.Model):
-    REC_ID = models.CharField(max_length=20, default="")
+    REC_ID = models.IntegerField(default="-1")
     REPORT_NUM = models.CharField(max_length=20, default="")
     CREATE_TIME = models.DateTimeField('CREATE_TIME')
     DISTRICT_NAME = models.CharField(max_length=20, default="")

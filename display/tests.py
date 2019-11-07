@@ -180,11 +180,11 @@ class sortTest(TestCase):
         response = self.client.get('http://127.0.0.1:8000/query/filter?sort=time_dec&count=10')
         print(response.json())
 
-    def test_sort_id_inc(self):
-        response = self.client.get('http://127.0.0.1:8000/query/filter?count=200')
-        print(response.json())
-
     def test_sort_id_dec(self):
         response = self.client.get(
             'http://127.0.0.1:8000/query/filter?sort=id_dec&count=5&time_after=2018-07-04&time_before=2018-07-05')
+        print(response.json())
+
+    def test_sort_id_inc(self):
+        response = self.client.get('http://127.0.0.1:8000/query/filter?id_after=127400&sort=id_inc')
         print(response.json())
