@@ -297,6 +297,7 @@ def sort_info(request):
         list3 = []
         incid = Event.objects.extra(select={'id_inc': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
                                                                           REC_ID__range=(rec_id_after, rec_id_before))
+        incid = incid.extra(order_by=['id_inc'])
         print(len(incid))
         if offset > len(incid):
             return JsonResponse({"count":count,"data":[]})
@@ -341,6 +342,7 @@ def sort_info(request):
         decid = Event.objects.extra(select={'id_dec': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
                                                                           REC_ID__range=(rec_id_after,
                                                                                          rec_id_before))  # do not know what ID yet
+        decid = decid.extra(order_by=['-id_dec'])
         if offset > len(decid):
             return JsonResponse({"count":count,"data":[]})
         elif offset+count>len(decid):
