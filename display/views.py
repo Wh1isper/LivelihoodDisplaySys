@@ -8,7 +8,7 @@ from . import models
 from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import Event, User
-from django.db.models import Count
+from django.db.models import Count, Q
 
 SALT = 'iloveyou'
 
@@ -219,11 +219,11 @@ def sort_info(request):
         list1 = []
         inctime = Event.objects.filter(CREATE_TIME__range=(time_after, time_before),
                                        REC_ID__range=(rec_id_after, rec_id_before)).order_by('CREATE_TIME')
-        #if offset + count > len(inctime):
-         #   return JsonResponse({"err": 5, "msg": "index out of range"})
+        # if offset + count > len(inctime):
+        #   return JsonResponse({"err": 5, "msg": "index out of range"})
         if offset >= len(inctime):
-            return JsonResponse({"count":count,"data":[]})
-        elif offset+count>len(inctime):
+            return JsonResponse({"count": count, "data": []})
+        elif offset + count > len(inctime):
             inctime = inctime[offset:len(inctime)]
         else:
             inctime = inctime[offset:offset + count]
@@ -262,8 +262,8 @@ def sort_info(request):
         dectime = Event.objects.filter(CREATE_TIME__range=(time_after, time_before),
                                        REC_ID__range=(rec_id_after, rec_id_before)).order_by('-CREATE_TIME')
         if offset > len(dectime):
-            return JsonResponse({"count":count,"data":[]})
-        elif offset+count>len(dectime):
+            return JsonResponse({"count": count, "data": []})
+        elif offset + count > len(dectime):
             dectime = dectime[offset:len(dectime)]
         else:
             dectime = dectime[offset:offset + count]
@@ -303,8 +303,8 @@ def sort_info(request):
                                                                           REC_ID__range=(rec_id_after, rec_id_before))
         print(len(incid))
         if offset > len(incid):
-            return JsonResponse({"count":count,"data":[]})
-        elif offset+count>len(incid):
+            return JsonResponse({"count": count, "data": []})
+        elif offset + count > len(incid):
             incid = incid[offset:len(incid)]
         else:
             incid = incid[offset:offset + count]
@@ -346,8 +346,8 @@ def sort_info(request):
                                                                           REC_ID__range=(rec_id_after,
                                                                                          rec_id_before))  # do not know what ID yet
         if offset > len(decid):
-            return JsonResponse({"count":count,"data":[]})
-        elif offset+count>len(decid):
+            return JsonResponse({"count": count, "data": []})
+        elif offset + count > len(decid):
             decid = decid[offset:len(decid)]
         else:
             decid = decid[offset:offset + count]
@@ -433,12 +433,12 @@ def warning(request):
     # written by jzs
     time_after = request.GET.get('time_after')
     time_before = request.GET.get('time_before')
-    begin = request.GET.get('begin')
-    count = request.GET.get('count')
-    warning_event = Event.objects.filter()
-    try:
+    begin = request.GET.get('begin', 0)
+    count = request.GET.get('count', 20)
+    warning_event = Event.objects.filter(Q(EVENT_TYPE_ID__exact='1') | Q(MAIN_TYPE_ID__exact='93')|
+                                         Q(SUB_TYPE_ID__exact='832')| Q(SUB_TYPE_ID__exact='833')).order_by('-CREATE_TIME')
 
-        
+    try:
         object_within_period = warning_event
         if time_after:
             object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
