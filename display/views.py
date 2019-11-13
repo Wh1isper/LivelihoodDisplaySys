@@ -187,6 +187,30 @@ def check_code(request):
 @get_only
 def sort_info(request):
     # written by wcz
+    def or_list_STREET_ID(list):
+        x = Q()
+        for value in list:
+            x = x | Q(STREET_ID=value)
+        return x
+
+    def or_list_COMMUNITY_ID(list):
+        x = Q()
+        for value in list:
+            x = x | Q(COMMUNITY_ID=value)
+        return x
+
+    def or_list_EVENT_TYPE_ID(list):
+        x = Q()
+        for value in list:
+            x = x | Q(EVENT_TYPE_ID=value)
+        return x
+
+    after_leach = Event.objects.all()
+    STREET_ID = request.GET.getlist('STREET')
+    COMMUNITY_ID = request.GET.getlist('COMMUNITY')
+    EVENT_TYPE_ID = request.GET.getlist('EVENT_TYPE')
+    after_leach = Event.objects.all()
+
     sort = request.GET.get('sort')
     count = request.GET.get('count')
     offset = request.GET.get('offset')
@@ -200,8 +224,12 @@ def sort_info(request):
         time_before = '2999-12-31'
     if rec_id_after == None:
         rec_id_after = -9999999
+    else:
+        rec_id_after = int(rec_id_after)
     if rec_id_before == None:
         rec_id_before = 9999999
+    else:
+        rec_id_before = int(rec_id_before)
     if sort == None:
         sort = 'id_inc'
     if count == None:
@@ -214,16 +242,27 @@ def sort_info(request):
         offset = 0
     else:
         offset = int(offset)
-
+    if STREET_ID:
+        STREET_ID = STREET_ID[0].split(',')
+        filter_street_id = or_list_STREET_ID(STREET_ID)
+        after_leach = after_leach.filter(filter_street_id)
+    if COMMUNITY_ID:
+        COMMUNITY_ID = COMMUNITY_ID[0].split(',')
+        filter_community_id = or_list_COMMUNITY_ID(COMMUNITY_ID)
+        after_leach = after_leach.filter(filter_community_id)
+    if EVENT_TYPE_ID:
+        EVENT_TYPE_ID = EVENT_TYPE_ID[0].split(',')
+        filter_event_type_id = or_list_EVENT_TYPE_ID(EVENT_TYPE_ID)
+        after_leach = after_leach.filter(filter_event_type_id)
     if sort == 'time_inc':
         list1 = []
-        inctime = Event.objects.filter(CREATE_TIME__range=(time_after, time_before),
+        inctime = after_leach.filter(CREATE_TIME__range=(time_after, time_before),
                                        REC_ID__range=(rec_id_after, rec_id_before)).order_by('CREATE_TIME')
-        # if offset + count > len(inctime):
-        #   return JsonResponse({"err": 5, "msg": "index out of range"})
+        #if offset + count > len(inctime):
+         #   return JsonResponse({"err": 5, "msg": "index out of range"})
         if offset >= len(inctime):
-            return JsonResponse({"count": count, "data": []})
-        elif offset + count > len(inctime):
+            return JsonResponse({"count":count,"data":[]})
+        elif offset+count>len(inctime):
             inctime = inctime[offset:len(inctime)]
         else:
             inctime = inctime[offset:offset + count]
@@ -259,11 +298,11 @@ def sort_info(request):
 
     elif sort == 'time_dec':
         list2 = []
-        dectime = Event.objects.filter(CREATE_TIME__range=(time_after, time_before),
+        dectime = after_leach.filter(CREATE_TIME__range=(time_after, time_before),
                                        REC_ID__range=(rec_id_after, rec_id_before)).order_by('-CREATE_TIME')
         if offset > len(dectime):
-            return JsonResponse({"count": count, "data": []})
-        elif offset + count > len(dectime):
+            return JsonResponse({"count":count,"data":[]})
+        elif offset+count>len(dectime):
             dectime = dectime[offset:len(dectime)]
         else:
             dectime = dectime[offset:offset + count]
@@ -299,12 +338,13 @@ def sort_info(request):
 
     elif sort == 'id_inc':
         list3 = []
-        incid = Event.objects.extra(select={'id_inc': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
-                                                                          REC_ID__range=(rec_id_after, rec_id_before))
+        incid = after_leach.extra(select={'id_inc': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
+                                                                          REC_ID__range=(rec_id_after+1, rec_id_before-1))
+        incid = incid.extra(order_by=['id_inc'])
         print(len(incid))
         if offset > len(incid):
-            return JsonResponse({"count": count, "data": []})
-        elif offset + count > len(incid):
+            return JsonResponse({"count":count,"data":[]})
+        elif offset+count>len(incid):
             incid = incid[offset:len(incid)]
         else:
             incid = incid[offset:offset + count]
@@ -342,12 +382,14 @@ def sort_info(request):
 
     elif sort == 'id_dec':
         list4 = []
-        decid = Event.objects.extra(select={'id_dec': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
-                                                                          REC_ID__range=(rec_id_after,
-                                                                                         rec_id_before))  # do not know what ID yet
+        decid = after_leach.extra(select={'id_dec': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
+                                                                          REC_ID__range=(rec_id_after+1,
+                                                                                         rec_id_before-1))  # do not know what ID yet
+        decid = decid.extra(order_by=['-id_dec'])
+        print(len(decid))
         if offset > len(decid):
-            return JsonResponse({"count": count, "data": []})
-        elif offset + count > len(decid):
+            return JsonResponse({"count":count,"data":[]})
+        elif offset+count>len(decid):
             decid = decid[offset:len(decid)]
         else:
             decid = decid[offset:offset + count]
@@ -382,6 +424,7 @@ def sort_info(request):
         return JsonResponse({"count": count, "data": list4})
     else:
         return JsonResponse({"err": 1})
+
 
 
 @csrf_exempt
@@ -517,3 +560,6 @@ def init(request):
         )
         event.save()
     return HttpResponse("添加完成")
+
+def to_main_page(request):
+    return HttpResponseRedirect("https://test.nzh21.site/")
