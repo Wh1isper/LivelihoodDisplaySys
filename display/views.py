@@ -123,6 +123,7 @@ def query_count(request):
     ret = {}
     try:
         object_within_period = Event.objects
+        # 对时间取区间
         if time_after:
             object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
         if time_before:
@@ -133,6 +134,7 @@ def query_count(request):
                 first_category_set_list = [x[0] for x in first_category_set]
                 total = 0
                 for value in first_category_set_list:
+                    # 对第一类的每一个项按第二类统计
                     if not first_category_filter_id or value[0] in first_category_filter_id[0].split(","):
                         first_category_dict = {first_category: value}
                         cur_set = object_within_period.filter(**first_category_dict).values_list(second_category) \
@@ -141,6 +143,7 @@ def query_count(request):
                         all = 0
                         for x in cur_set:
                             if not second_category_filter_id or x[0] in second_category_filter_id[0].split(","):
+                                # 统计所有或按id统计
                                 cur_dict[x[0]] = x[1]
                                 all += x[1]
                         total += all
@@ -149,6 +152,7 @@ def query_count(request):
                 ret["all"] = total
                 return JsonResponse(json.dumps(ret), safe=False)
             else:
+                # 只统计第一类
                 first_category_set = object_within_period.values_list(first_category).annotate(Count(first_category))
                 total = 0
                 for x in first_category_set:
@@ -433,6 +437,8 @@ def warning(request):
     count = request.GET.get('count')
     warning_event = Event.objects.filter()
     try:
+
+        
         object_within_period = warning_event
         if time_after:
             object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
