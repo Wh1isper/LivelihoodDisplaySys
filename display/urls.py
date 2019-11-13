@@ -10,5 +10,6 @@ urlpatterns = [
     path('login/check_code', views.check_code, name='check_code'),
     path('query/filter', views.sort_info, name='sort_info'),
     path('query/item', views.item, name='item'),
-    path('warning',views.warning,name='warning')
+    path('warning',views.warning,name='warning'),
+    path('',views.to_main_page,name='toMain')
 ]
