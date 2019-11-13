@@ -157,7 +157,7 @@ class itemTest(TestCase):
 class sortTest(TestCase):
     # written by wcz
     def setUp(self):
-        self.name = 'countTest'
+        self.name = 'sortTest'
         init = reverse('init')
         self.client.get(path=init)
         default_user = User()
@@ -187,4 +187,24 @@ class sortTest(TestCase):
 
     def test_sort_id_inc(self):
         response = self.client.get('http://127.0.0.1:8000/query/filter?id_after=127400&sort=id_inc')
+        print(response.json())
+
+class warmingTest(TestCase):
+    # written by jzs
+    def setUp(self):
+        self.name = 'warmingTest'
+        init = reverse('init')
+        self.client.get(path=init)
+        default_user = User()
+        default_user.save()
+        login = reverse('login')
+        self.client.post(
+            path=login,
+            data={
+                "username": "sadness",
+                "password": "happiness",
+                "captcha": "answer is here",
+            })
+    def test_warming_success(self):
+        response = self.client.get('http://127.0.0.1:8000/warning?time_after=2018-02-04&time_before=2018-12-05')
         print(response.json())
