@@ -215,9 +215,14 @@ def sort_info(request):
         list1 = []
         inctime = Event.objects.filter(CREATE_TIME__range=(time_after, time_before),
                                        REC_ID__range=(rec_id_after, rec_id_before)).order_by('CREATE_TIME')
-        if offset + count > len(inctime):
-            return JsonResponse({"err": 5, "msg": "index out of range"})
-        inctime = inctime[offset:offset + count]
+        #if offset + count > len(inctime):
+         #   return JsonResponse({"err": 5, "msg": "index out of range"})
+        if offset >= len(inctime):
+            return JsonResponse({"count":count,"data":[]})
+        elif offset+count>len(inctime):
+            inctime = inctime[offset:len(inctime)]
+        else:
+            inctime = inctime[offset:offset + count]
         for info in inctime:
             event_dict = {"REC_ID": info.REC_ID,
                           "REPORT_NUM": info.REPORT_NUM,
@@ -252,9 +257,12 @@ def sort_info(request):
         list2 = []
         dectime = Event.objects.filter(CREATE_TIME__range=(time_after, time_before),
                                        REC_ID__range=(rec_id_after, rec_id_before)).order_by('-CREATE_TIME')
-        if offset + count > len(dectime):
-            return JsonResponse({"err": 5, "msg": "index out of range"})
-        dectime = dectime[offset:offset + count]
+        if offset > len(dectime):
+            return JsonResponse({"count":count,"data":[]})
+        elif offset+count>len(dectime):
+            dectime = dectime[offset:len(dectime)]
+        else:
+            dectime = dectime[offset:offset + count]
         for info in dectime:
             event_dict = {"REC_ID": info.REC_ID,
                           "REPORT_NUM": info.REPORT_NUM,
@@ -289,10 +297,15 @@ def sort_info(request):
         list3 = []
         incid = Event.objects.extra(select={'id_inc': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
                                                                           REC_ID__range=(rec_id_after, rec_id_before))
-        if offset + count > len(incid):
-            return JsonResponse({"err": 5, "msg": "index out of range"})
+        print(len(incid))
+        if offset > len(incid):
+            return JsonResponse({"count":count,"data":[]})
+        elif offset+count>len(incid):
+            incid = incid[offset:len(incid)]
+        else:
+            incid = incid[offset:offset + count]
+        print(len(incid))
         # do not know what ID yet
-        incid = incid.extra(order_by=['id_inc'])[offset:offset + count]
         for info in incid:
             event_dict = {"REC_ID": info.REC_ID,
                           "REPORT_NUM": info.REPORT_NUM,
@@ -328,9 +341,12 @@ def sort_info(request):
         decid = Event.objects.extra(select={'id_dec': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
                                                                           REC_ID__range=(rec_id_after,
                                                                                          rec_id_before))  # do not know what ID yet
-        if offset + count > len(decid):
-            return JsonResponse({"err": 5, "msg": "index out of range"})
-        decid = decid.extra(order_by=['-id_dec'])[offset:offset + count]
+        if offset > len(decid):
+            return JsonResponse({"count":count,"data":[]})
+        elif offset+count>len(decid):
+            decid = decid[offset:len(decid)]
+        else:
+            decid = decid[offset:offset + count]
         for info in decid:
             event_dict = {"REC_ID": info.REC_ID,
                           "REPORT_NUM": info.REPORT_NUM,
