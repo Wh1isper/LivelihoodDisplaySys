@@ -205,6 +205,9 @@ class warmingTest(TestCase):
                 "password": "happiness",
                 "captcha": "answer is here",
             })
-    def test_warming_success(self):
+    def test_warming_time(self):
         response = self.client.get('http://127.0.0.1:8000/warning?time_after=2018-02-04&time_before=2018-12-05')
+        print(response.json())
+    def test_warming_id(self):
+        response = self.client.get('http://127.0.0.1:8000/warning?id_after=80000&id_before=90000')
         print(response.json())

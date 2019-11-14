@@ -237,10 +237,11 @@ def sort_info(request):
     else:
         count = int(count)
         if count > 100:
-            return JsonResponse({"err": 5, "msg": "count too high"})
+            return JsonResponse({"err": 5, "msg": "count too big"})
     if offset == None:
         offset = 0
     else:
+
         offset = int(offset)
     if STREET_ID:
         STREET_ID = STREET_ID[0].split(',')
@@ -476,6 +477,8 @@ def warning(request):
     # written by jzs
     time_after = request.GET.get('time_after')
     time_before = request.GET.get('time_before')
+    rec_id_before = request.GET.get('id_before')
+    rec_id_after = request.GET.get('id_after')
     begin = request.GET.get('begin', 0)
     count = request.GET.get('count', 20)
     warning_event = Event.objects.filter(Q(EVENT_TYPE_ID__exact='1') | Q(MAIN_TYPE_ID__exact='93')|
@@ -487,6 +490,10 @@ def warning(request):
             object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
         if time_before:
             object_within_period = object_within_period.filter(CREATE_TIME__lte=time_before)
+        if rec_id_after:
+            object_within_period = object_within_period.filter(REC_ID__gt=rec_id_after)
+        if rec_id_before:
+            object_within_period = object_within_period.filter(REC_ID__lt=rec_id_before)
         object_in_scale = object_within_period[begin:begin + count]
     except:
         return JsonResponse({"err": 5})
