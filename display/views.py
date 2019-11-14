@@ -79,6 +79,21 @@ def login(request):
         return JsonResponse({"err": 2})
 
 
+@get_only
+@csrf_exempt
+def check_code(request):
+    # written by jzs
+    code = "answer is here"
+    img = "img is here"
+
+    # imagepath = path.join(d, "static/show/wordimage/" + str(news_id) + ".png")
+    # print("imagepath=" + str(imagepath))
+    # image_data = open(imagepath, "rb").read()
+
+    request.session['check_code'] = code
+    return HttpResponse(img, content_type="image/png")
+
+
 @csrf_exempt
 @post_only
 @auth
@@ -167,21 +182,6 @@ def query_count(request):
         return JsonResponse(json.dumps({"err": 5}), safe=False)
 
 
-@get_only
-@csrf_exempt
-def check_code(request):
-    # written by jzs
-    code = "answer is here"
-    img = "img is here"
-
-    # imagepath = path.join(d, "static/show/wordimage/" + str(news_id) + ".png")
-    # print("imagepath=" + str(imagepath))
-    # image_data = open(imagepath, "rb").read()
-
-    request.session['check_code'] = code
-    return HttpResponse(img, content_type="image/png")
-
-
 @csrf_exempt
 @auth
 @get_only
@@ -258,12 +258,12 @@ def sort_info(request):
     if sort == 'time_inc':
         list1 = []
         inctime = after_leach.filter(CREATE_TIME__range=(time_after, time_before),
-                                       REC_ID__range=(rec_id_after, rec_id_before)).order_by('CREATE_TIME')
-        #if offset + count > len(inctime):
-         #   return JsonResponse({"err": 5, "msg": "index out of range"})
+                                     REC_ID__range=(rec_id_after, rec_id_before)).order_by('CREATE_TIME')
+        # if offset + count > len(inctime):
+        #   return JsonResponse({"err": 5, "msg": "index out of range"})
         if offset >= len(inctime):
-            return JsonResponse({"count":count,"data":[]})
-        elif offset+count>len(inctime):
+            return JsonResponse({"count": count, "data": []})
+        elif offset + count > len(inctime):
             inctime = inctime[offset:len(inctime)]
         else:
             inctime = inctime[offset:offset + count]
@@ -300,10 +300,10 @@ def sort_info(request):
     elif sort == 'time_dec':
         list2 = []
         dectime = after_leach.filter(CREATE_TIME__range=(time_after, time_before),
-                                       REC_ID__range=(rec_id_after, rec_id_before)).order_by('-CREATE_TIME')
+                                     REC_ID__range=(rec_id_after, rec_id_before)).order_by('-CREATE_TIME')
         if offset > len(dectime):
-            return JsonResponse({"count":count,"data":[]})
-        elif offset+count>len(dectime):
+            return JsonResponse({"count": count, "data": []})
+        elif offset + count > len(dectime):
             dectime = dectime[offset:len(dectime)]
         else:
             dectime = dectime[offset:offset + count]
@@ -340,12 +340,13 @@ def sort_info(request):
     elif sort == 'id_inc':
         list3 = []
         incid = after_leach.extra(select={'id_inc': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
-                                                                          REC_ID__range=(rec_id_after+1, rec_id_before-1))
+                                                                        REC_ID__range=(
+                                                                        rec_id_after + 1, rec_id_before - 1))
         incid = incid.extra(order_by=['id_inc'])
         print(len(incid))
         if offset > len(incid):
-            return JsonResponse({"count":count,"data":[]})
-        elif offset+count>len(incid):
+            return JsonResponse({"count": count, "data": []})
+        elif offset + count > len(incid):
             incid = incid[offset:len(incid)]
         else:
             incid = incid[offset:offset + count]
@@ -384,13 +385,13 @@ def sort_info(request):
     elif sort == 'id_dec':
         list4 = []
         decid = after_leach.extra(select={'id_dec': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
-                                                                          REC_ID__range=(rec_id_after+1,
-                                                                                         rec_id_before-1))  # do not know what ID yet
+                                                                        REC_ID__range=(rec_id_after + 1,
+                                                                                       rec_id_before - 1))  # do not know what ID yet
         decid = decid.extra(order_by=['-id_dec'])
         print(len(decid))
         if offset > len(decid):
-            return JsonResponse({"count":count,"data":[]})
-        elif offset+count>len(decid):
+            return JsonResponse({"count": count, "data": []})
+        elif offset + count > len(decid):
             decid = decid[offset:len(decid)]
         else:
             decid = decid[offset:offset + count]
@@ -425,7 +426,6 @@ def sort_info(request):
         return JsonResponse({"count": count, "data": list4})
     else:
         return JsonResponse({"err": 1})
-
 
 
 @csrf_exempt
@@ -479,10 +479,14 @@ def warning(request):
     time_before = request.GET.get('time_before')
     rec_id_before = request.GET.get('id_before')
     rec_id_after = request.GET.get('id_after')
-    begin = request.GET.get('begin', 0)
-    count = request.GET.get('count', 20)
-    warning_event = Event.objects.filter(Q(EVENT_TYPE_ID__exact='1') | Q(MAIN_TYPE_ID__exact='93')|
-                                         Q(SUB_TYPE_ID__exact='832')| Q(SUB_TYPE_ID__exact='833')).order_by('-CREATE_TIME')
+    try:
+        begin = eval(request.GET.get('begin', 0))
+        count = eval(request.GET.get('count', 20))
+    except:
+        return JsonResponse({"err": 1})
+    warning_event = Event.objects.filter(Q(EVENT_TYPE_ID__exact='1') | Q(MAIN_TYPE_ID__exact='93') |
+                                         Q(SUB_TYPE_ID__exact='832') | Q(SUB_TYPE_ID__exact='833')).order_by(
+        '-CREATE_TIME')
 
     try:
         object_within_period = warning_event
@@ -567,6 +571,7 @@ def init(request):
         )
         event.save()
     return HttpResponse("添加完成")
+
 
 def to_main_page(request):
     return HttpResponseRedirect("https://test.nzh21.site/")
