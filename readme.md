@@ -14,7 +14,7 @@
 	利用session访问
 
 	/logout 为登出接口，将删除session
-	session生存周期为1天
+	session生存周期为12小时
 	
 
 	保留/register作为注册接口

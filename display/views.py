@@ -480,8 +480,8 @@ def warning(request):
     rec_id_before = request.GET.get('id_before')
     rec_id_after = request.GET.get('id_after')
     try:
-        begin = eval(request.GET.get('begin', 0))
-        count = eval(request.GET.get('count', 20))
+        begin = int(request.GET.get('begin', 0))
+        count = int(request.GET.get('count', 20))
     except:
         return JsonResponse({"err": 1})
     warning_event = Event.objects.filter(Q(EVENT_TYPE_ID__exact='1') | Q(MAIN_TYPE_ID__exact='93') |
@@ -542,7 +542,7 @@ def init(request):
     result = json.loads(content[1:-1])
     for line in result:
         event = Event(
-            REC_ID=eval(line['REC_ID']),
+            REC_ID=int(line['REC_ID']),
             REPORT_NUM=line['REPORT_NUM'],
             CREATE_TIME=line['CREATE_TIME'],
             DISTRICT_NAME=line['DISTRICT_NAME'],
