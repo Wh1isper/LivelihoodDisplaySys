@@ -62,7 +62,9 @@ def get_only(func):
 def login(request):
     # written by jzs
     code = request.POST.get('captcha', '')
+
     if not code == request.session.get('check_code', None):
+        del request.session['check_code']  # 验证码失效
         return JsonResponse({"err": 3})  # 验证码错误
 
     usr = request.POST.get('username')
@@ -73,11 +75,11 @@ def login(request):
         # response.set_signed_cookie(key='username', value=usr, salt=SALT,
         #                            secure=True,httponly=True)
         request.session['login'] = True
-
+        del request.session['check_code']  # 验证码失效
         # print(request.session['login'])
-
         return response
     else:
+        del request.session['check_code']  # 验证码失效
         return JsonResponse({"err": 2})
 
 
