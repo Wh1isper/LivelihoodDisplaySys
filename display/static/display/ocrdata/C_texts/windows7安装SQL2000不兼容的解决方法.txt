@@ -1,0 +1,1 @@
+Win7下安装sql2000最重要的一点就是把uac给关闭,就是以管理员身份运行的提示方法如下:1）"开始"、"运行"里输入"msconfig",回车选择“工具”，点“更改UAC设置”，然后点“启动”，将更改设置为从不通知2）更改注册表信息："开始"、"运行"里输入"regedit"找到以下节点"HKEY_LOCAL_MACHINE"-------"SYSTEM"-------"CurrentControlSet"-------"Control"-------"SessionManger"找到PendingFileRenameOperations组件后删除它，如果说你觉得不放心，你可以先将这个组件备份下再删除，我是直接删除的。然后重启下你的电脑，因为之前我们关闭了UAC。重启过后再安装，会出现兼容问题，直接确定装

@@ -9,6 +9,8 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import Event, User
 from django.db.models import Count, Q
+from .textgen import get_batch, crop_img
+from io import BytesIO
 
 SALT = 'iloveyou'
 
@@ -60,8 +62,8 @@ def get_only(func):
 def login(request):
     # written by jzs
     code = request.POST.get('captcha', '')
-    # if not code == request.session.get('check_code', None):
-    #     return JsonResponse({"err": 3})  # 验证码错误
+    if not code == request.session.get('check_code', None):
+        return JsonResponse({"err": 3})  # 验证码错误
 
     usr = request.POST.get('username')
     pwd = request.POST.get('password')
@@ -83,15 +85,15 @@ def login(request):
 @csrf_exempt
 def check_code(request):
     # written by jzs
-    code = "answer is here"
-    img = "img is here"
 
-    # imagepath = path.join(d, "static/show/wordimage/" + str(news_id) + ".png")
-    # print("imagepath=" + str(imagepath))
-    # image_data = open(imagepath, "rb").read()
+    texts, image = get_batch(4, batchsize=1)
+    code, img = crop_img(image, texts)
 
+    f = BytesIO()
+    img.save(f, 'PNG')
     request.session['check_code'] = code
-    return HttpResponse(img, content_type="image/png")
+    print(code)
+    return HttpResponse(f.getvalue(), content_type="image/png")
 
 
 @csrf_exempt
@@ -341,7 +343,7 @@ def sort_info(request):
         list3 = []
         incid = after_leach.extra(select={'id_inc': 'REC_ID+0'}).filter(CREATE_TIME__range=(time_after, time_before),
                                                                         REC_ID__range=(
-                                                                        rec_id_after + 1, rec_id_before - 1))
+                                                                            rec_id_after + 1, rec_id_before - 1))
         incid = incid.extra(order_by=['id_inc'])
         print(len(incid))
         if offset > len(incid):
