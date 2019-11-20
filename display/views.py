@@ -56,6 +56,14 @@ def get_only(func):
 
     return inner
 
+CUR_MAX_RECID = 114563
+# 模拟测试
+def update_data(func):
+    def inner(request, *args, **kwargs):
+        global CUR_MAX_RECID
+        CUR_MAX_RECID += 10
+        return func(request, *args, **kwargs)
+    return inner
 
 @csrf_exempt
 @post_only
@@ -131,6 +139,7 @@ def register(request):
 @csrf_exempt
 @auth
 @get_only
+@update_data
 def query_count(request):
     # written by jzs
     first_category = request.GET.get('first_category')
@@ -141,7 +150,7 @@ def query_count(request):
     time_before = request.GET.get('time_before')
     ret = {}
     try:
-        object_within_period = Event.objects
+        object_within_period = Event.objects.filter(REC_ID__lte=CUR_MAX_RECID)
         # 对时间取区间
         if time_after:
             object_within_period = object_within_period.filter(CREATE_TIME__gte=time_after)
@@ -189,6 +198,7 @@ def query_count(request):
 @csrf_exempt
 @auth
 @get_only
+@update_data
 def sort_info(request):
     # written by wcz
     def or_list_STREET_ID(list):
@@ -231,9 +241,12 @@ def sort_info(request):
     else:
         rec_id_after = int(rec_id_after)
     if rec_id_before == None:
-        rec_id_before = 9999999
+        rec_id_before = CUR_MAX_RECID
     else:
-        rec_id_before = int(rec_id_before)
+        if (int(rec_id_before)<CUR_MAX_RECID):
+            rec_id_before = int(rec_id_before)
+        else:
+            rec_id_before = CUR_MAX_RECID
     if sort == None:
         sort = 'id_inc'
     if count == None:
@@ -262,9 +275,10 @@ def sort_info(request):
     if sort == 'time_inc':
         list1 = []
         inctime = after_leach.filter(CREATE_TIME__range=(time_after, time_before),
-                                     REC_ID__range=(rec_id_after, rec_id_before)).order_by('CREATE_TIME')
+                                     REC_ID__range=(rec_id_after, rec_id_before )).order_by('CREATE_TIME')
         # if offset + count > len(inctime):
         #   return JsonResponse({"err": 5, "msg": "index out of range"})
+        length = len(inctime)
         if offset >= len(inctime):
             return JsonResponse({"count": count, "data": []})
         elif offset + count > len(inctime):
@@ -299,12 +313,13 @@ def sort_info(request):
                           # "EVENT_PROPERTY_NAME":info.EVENT_PROPERTY_NAME,
                           "OCCUR_PLACE": info.OCCUR_PLACE}
             list1.append(event_dict)
-        return JsonResponse({"count": count, "data": list1})
+        return JsonResponse({"all":length, "count": count, "data": list1})
 
     elif sort == 'time_dec':
         list2 = []
         dectime = after_leach.filter(CREATE_TIME__range=(time_after, time_before),
                                      REC_ID__range=(rec_id_after, rec_id_before)).order_by('-CREATE_TIME')
+        length = len(dectime)
         if offset > len(dectime):
             return JsonResponse({"count": count, "data": []})
         elif offset + count > len(dectime):
@@ -339,7 +354,7 @@ def sort_info(request):
                           # "EVENT_PROPERTY_NAME":info.EVENT_PROPERTY_NAME,
                           "OCCUR_PLACE": info.OCCUR_PLACE}
             list2.append(event_dict)
-        return JsonResponse({"count": count, "data": list2})
+        return JsonResponse({"all":length, "count": count, "data": list2})
 
     elif sort == 'id_inc':
         list3 = []
@@ -348,6 +363,7 @@ def sort_info(request):
                                                                             rec_id_after + 1, rec_id_before - 1))
         incid = incid.extra(order_by=['id_inc'])
         print(len(incid))
+        length = len(incid)
         if offset > len(incid):
             return JsonResponse({"count": count, "data": []})
         elif offset + count > len(incid):
@@ -384,7 +400,7 @@ def sort_info(request):
                           # "EVENT_PROPERTY_NAME":info.EVENT_PROPERTY_NAME,
                           "OCCUR_PLACE": info.OCCUR_PLACE}
             list3.append(event_dict)
-        return JsonResponse({"count": count, "data": list3})
+        return JsonResponse({"all":length, "count": count, "data": list3})
 
     elif sort == 'id_dec':
         list4 = []
@@ -392,6 +408,7 @@ def sort_info(request):
                                                                         REC_ID__range=(rec_id_after + 1,
                                                                                        rec_id_before - 1))  # do not know what ID yet
         decid = decid.extra(order_by=['-id_dec'])
+        length = len(decid)
         print(len(decid))
         if offset > len(decid):
             return JsonResponse({"count": count, "data": []})
@@ -427,7 +444,7 @@ def sort_info(request):
                           # "EVENT_PROPERTY_NAME":info.EVENT_PROPERTY_NAME,
                           "OCCUR_PLACE": info.OCCUR_PLACE}
             list4.append(event_dict)
-        return JsonResponse({"count": count, "data": list4})
+        return JsonResponse({"all":length, "count": count, "data": list4})
     else:
         return JsonResponse({"err": 1})
 
@@ -438,7 +455,7 @@ def sort_info(request):
 def item(request):
     # written by jzs
     rec_id = request.GET.get('REC_ID')
-    if rec_id:
+    if rec_id>CUR_MAX_RECID:
         try:
             info = Event.objects.get(REC_ID__exact=rec_id)
             event_dict = {"REC_ID": info.REC_ID,
@@ -477,6 +494,7 @@ def item(request):
 @csrf_exempt
 @auth
 @get_only
+@update_data
 def warning(request):
     # written by jzs
     time_after = request.GET.get('time_after')
@@ -488,7 +506,8 @@ def warning(request):
         count = int(request.GET.get('count', 20))
     except:
         return JsonResponse({"err": 1})
-    warning_event = Event.objects.filter(Q(EVENT_TYPE_ID__exact='1') | Q(MAIN_TYPE_ID__exact='93') |
+    cur_event_set = Event.objects.filter(REC_ID__lte=CUR_MAX_RECID)
+    warning_event = cur_event_set.filter(Q(EVENT_TYPE_ID__exact='1') | Q(MAIN_TYPE_ID__exact='93') |
                                          Q(SUB_TYPE_ID__exact='832') | Q(SUB_TYPE_ID__exact='833')).order_by(
         '-CREATE_TIME')
 
